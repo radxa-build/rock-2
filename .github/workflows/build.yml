@@ -7,25 +7,36 @@ jobs:
     steps:
     - name: "Checkout"
       uses: "actions/checkout@v4"
-    - name: "Upload image"
+    - name: "Build image"
       uses: "RadxaOS-SDK/rsdk/.github/actions/build@main"
       with:
+        edition: "${{ matrix.edition }}"
         github-token: "${{ secrets.GITHUB_TOKEN }}"
         product: "${{ matrix.product }}"
         release-id: "${{ needs.prepare_release.outputs.release_id }}"
+        suite: "${{ matrix.suite }}"
     strategy:
       matrix:
+        edition: "${{ fromJSON(needs.prepare_release.outputs.editions )}}"
         product:
         - "rock-2a"
+        suite: "${{ fromJSON(needs.prepare_release.outputs.suites )}}"
   prepare_release:
     outputs:
+      editions: "${{ steps.query.outputs.editions }}"
       release_id: "${{ steps.release.outputs.id }}"
+      suites: "${{ steps.query.outputs.suites }}"
     runs-on: "ubuntu-latest"
     steps:
     - name: "Checkout"
       uses: "actions/checkout@v4"
-    - name: "Generate rbuild changelog"
+    - name: "Generate changelog"
       uses: "radxa-repo/rbuild-changelog@main"
+      with:
+        product: "rock-2a"
+    - id: "query"
+      name: "Query product info"
+      uses: "RadxaOS-SDK/rsdk/.github/actions/query@main"
       with:
         product: "rock-2a"
     - id: "release"
@@ -39,6 +50,6 @@ jobs:
         tag_name: "b${{ github.run_number }}"
         target_commitish: "main"
         token: "${{ secrets.GITHUB_TOKEN }}"
-name: "Build image for Release channel"
+name: "Build image for release channel"
 "on":
   workflow_dispatch: {}
