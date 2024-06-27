@@ -15,11 +15,13 @@ jobs:
         product: "${{ matrix.product }}"
         release-id: "${{ needs.prepare_release.outputs.release_id }}"
         suite: "${{ matrix.suite }}"
+        test-repo: true
+        timestamp: "t${{ github.run_number }}"
     strategy:
       matrix:
         edition: "${{ fromJSON(needs.prepare_release.outputs.editions )}}"
         product:
-        - "rock-2a"
+        - "rock-2"
         suite: "${{ fromJSON(needs.prepare_release.outputs.suites )}}"
   prepare_release:
     outputs:
@@ -33,23 +35,25 @@ jobs:
     - name: "Generate changelog"
       uses: "radxa-repo/rbuild-changelog@main"
       with:
-        product: "rock-2a"
+        product: "rock-2"
     - id: "query"
       name: "Query product info"
       uses: "RadxaOS-SDK/rsdk/.github/actions/query@main"
       with:
-        product: "rock-2a"
+        product: "rock-2"
     - id: "release"
       name: "Create empty release"
       uses: "softprops/action-gh-release@v2"
       with:
-        body_path: "README.md"
+        body: |
+          This is a test build for internal development.
+          Only use when specifically instructed by Radxa support.
         draft: false
         files: ".changelog/changelog.md"
         prerelease: true
-        tag_name: "b${{ github.run_number }}"
+        tag_name: "t${{ github.run_number }}"
         target_commitish: "main"
         token: "${{ secrets.GITHUB_TOKEN }}"
-name: "Build image for release channel"
+name: "Build image for test channel"
 "on":
   workflow_dispatch: {}
